@@ -25,5 +25,23 @@ var walk = function(dir, done) {
     });
   });
 };
+// 
+// function GetMediaFileNames() {
+//   walk(process.env.HOME+"/Node/", function(err, results) {
+//   if (err) throw err;
+//   console.log(results);
+//   
+//     
+//   for (m in results) {
+// results[m]=results[m].split('/').pop();
+// }
+// 
+//   return results;
+// //   
+// //   for (m in results) {
+// // console.log(results[m].split('/').pop());
+// // }
+// 
+// });
 
 module.exports=walk;

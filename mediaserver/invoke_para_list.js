@@ -2,7 +2,14 @@ var walk = require('./para_list');
 walk(process.env.HOME+"/Node/", function(err, results) {
   if (err) throw err;
   console.log(results);
+  
+  for (m in results) {
+console.log(results[m].split('/').pop());
+}
+
 });
+
+
 // var path = require('path');
 // var walk = function(dir, done) {
 //   var results = [];

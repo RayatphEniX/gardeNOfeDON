@@ -3,8 +3,10 @@ var fs = require("fs"),
     url = require("url"),
     path = require("path"),
 // var http = require('http'),
+//     Promise=require('bluebird');
       director = require('director');
-
+ var   ipaddr=require("./ip_addr");
+ var walk = require('./para_list');
   //
   // create some logic to be routed to.
   //
@@ -15,9 +17,52 @@ var fs = require("fs"),
 
   function ServePage() {
     this.res.writeHead(200, { "Content-Type": "text/html" });
-        this.res.write('<video src="http://localhost:8080/hots.mp4" controls></video>');
+    
+    
+//     var promise=Promise.resolve();
+//     var fns=[];
+    var res= this.res;
+    walk(process.env.HOME+"/Node/mediaserver/", function(err, results) {
+  if (err) throw err;
+//   console.log(results);
+  
+    var fns=[];
+  for (m in results) {
+//   console.log(results[m]);
+fns.push(results[m].split('/').pop());
+}
 
-    this.res.end('<video src="http://localhost:8080/movie.mp4" controls></video>');
+ip=ipaddr();
+    
+    fns.forEach(function(fs) {res.write('<video src="http://'+ip+':8080/'+fs+'" controls></video>');});
+    
+    res.end();
+
+//   console.log(fns);
+//   return fns;
+//   
+//   for (m in results) {
+// console.log(results[m].split('/').pop());
+// }
+
+});
+
+    // promise.then(function() {
+//     
+//     
+//       }).then(function() {
+//     
+//     ip=ipaddr();
+//     
+//     fns.forEach(function(fs) {res.write('<video src="http://'+ip+':8080/'+fs+'" controls></video>');});
+//     
+//     res.end();
+// //         this.res.write('<video src="http://localhost:8080/hots.mp4" controls></video>');
+// //         this.res.write('<video src="http://'+ip+':8080/hots.mp4" controls></video>');
+// //     this.res.end('<video src="http://'+ip+':8080/movie.mp4" controls></video>');
+//   }
+  
+//     this.res.end('<video src="http://localhost:8080/movie.mp4" controls></video>');
   }
   
   function ServeVideo() {
@@ -148,16 +193,20 @@ function ServeVideo2() {
     },
     '/show': {
     get: ServePage
-    },
-    "/movie.mp4":{
-    get: ServeVideo
-    },
-        "/hots.mp4":{
-//     get: ServeVideo2
-    get: ServeVideo
     }
+//         /\/\w+.mp4/:{
+//     get: ServeVideo
+//     }
+//     "/movie.mp4":{
+//     get: ServeVideo
+//     },
+//         "/hots.mp4":{
+// //     get: ServeVideo2
+//     get: ServeVideo
+//     }
   });
 
+    router.get(/\/\w+.mp4/, ServeVideo);
   //
   // setup a server and when there is a request, dispatch the
   // route that was requested in the request object.
@@ -176,7 +225,7 @@ function ServeVideo2() {
   // This can be done with a string or a regexp.
   //
   router.get('/bonjour', helloWorld);
-  router.get(/hola/, helloWorld);
+  router.get('/hola/', helloWorld);
 
   //
   // set the server to listen on port `8080`.
