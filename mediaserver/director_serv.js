@@ -7,6 +7,7 @@ var fs = require("fs"),
       director = require('director');
  var   ipaddr=require("./ip_addr");
  var walk = require('./para_list');
+ var URI = require('urijs');
   //
   // create some logic to be routed to.
   //
@@ -22,14 +23,18 @@ var fs = require("fs"),
 //     var promise=Promise.resolve();
 //     var fns=[];
     var res= this.res;
-    walk(process.env.HOME+"/Node/mediaserver/", function(err, results) {
+    var base=process.env.HOME+"/Node/mediaserver/";
+    // walk(process.env.HOME+"/Node/mediaserver/", 
+    walk(base, 
+    function(err, results) {
   if (err) throw err;
 //   console.log(results);
   
     var fns=[];
   for (m in results) {
 //   console.log(results[m]);
-fns.push(results[m].split('/').pop());
+// fns.push(results[m].split('/').pop());
+fns.push(URI(results[m]).relativeTo(base).toString());
 }
 
 ip=ipaddr();
@@ -206,6 +211,7 @@ function ServeVideo2() {
 //     }
   });
 
+    // router.get(/[\w\/]*\/\w+.mp4/, ServeVideo);
     router.get(/\/\w+.mp4/, ServeVideo);
   //
   // setup a server and when there is a request, dispatch the
