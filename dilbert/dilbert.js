@@ -11,52 +11,66 @@ var writeFile = utilities.promisify(fs.writeFile);
 
 var downloadQueue = new TaskQueue(2);
 
+// function spiderLinks(currentUrl, body, nesting) {
+//   if(nesting === 0) {
+//     return Promise.resolve();
+//   }
+//   
+//   var links = utilities.getPageLinks(currentUrl, body);
+//   
+//   //we need the following because the Promise we create next
+//   //will never settle if there are no tasks to process
+//   if(links.length === 0) {
+//     return Promise.resolve();
+//   }
+//   
+//   return new Promise(function(resolve, reject) {
+//     var completed = 0;
+//     links.forEach(function(link) {
+//       var task = function() {
+//         return spider(link, nesting - 1)
+//           .then(function() {
+//             if(++completed === links.length) {
+//               resolve();
+//             }
+//           })
+//           .catch(reject);
+//       };
+//       downloadQueue.pushTask(task);
+//     }); 
+//   });
+// }
 function spiderLinks(currentUrl, body, nesting) {
+  var promise = Promise.resolve();
   if(nesting === 0) {
-    return Promise.resolve();
+    return promise;
   }
-  
   var links = utilities.getPageLinks(currentUrl, body);
-  
-  //we need the following because the Promise we create next
-  //will never settle if there are no tasks to process
-  if(links.length === 0) {
-    return Promise.resolve();
-  }
-  
-  return new Promise(function(resolve, reject) {
-    var completed = 0;
-    links.forEach(function(link) {
-      var task = function() {
-        return spider(link, nesting - 1)
-          .then(function() {
-            if(++completed === links.length) {
-              resolve();
-            }
-          })
-          .catch(reject);
-      };
-      downloadQueue.pushTask(task);
-    }); 
+  links.forEach(function(link) {
+    promise = promise.then(function() {
+      return spider(link, nesting - 1);
+    });
   });
+  
+  return promise;
 }
 
-// function download(url, filename) {
-//   console.log('Downloading ' + url);
-//   var body;
-//   return request(url)
-//     .then(function(results) {
-//       body = results[1];
-// //       return mkdirp(path.dirname(filename));
-// //     })
-// //     .then(function() {
-//       return writeFile(filename, body);
+function download(url, filename) {
+  console.log('Downloading ' + url);
+  var body;
+  return request(url)
+    .then(function(results) {
+      body = results[1];
+//       return mkdirp(path.dirname(filename));
 //     })
 //     .then(function() {
-//       console.log('Downloaded and saved: ' + url);
-//       return body;
-//     });
-// }
+      return writeFile(filename, body);
+    })
+    .then(function() {
+      console.log('Downloaded and saved: ' + url);
+      return body;
+    });
+}
 
 function requestURL(url) {
   console.log('Downloading ' + url);
@@ -77,10 +91,17 @@ function requestURL(url) {
 
 function page(url) {
   var filename = utilities.urlToFilename(url);
-return download(url, filename)
+return requestURL(url)
           .then(function(body) {
             return spiderLinks(url, body, nesting);
-          });
+          })
+          .then(function(link) {
+            return download(link, filename);
+          })
+          .then(function() {
+            return spiderLinks(url, body, nesting);
+          })
+          ;
 
 }
 
